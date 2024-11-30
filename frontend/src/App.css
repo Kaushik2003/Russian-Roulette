@@ -1,3 +1,13 @@
+.header {
+display: flex;
+justify-content: space-between;
+align-items: flex-end;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 body {
   font-family: 'Press Start 2P', cursive;
   background: #f0f2f5;
@@ -12,7 +22,7 @@ body {
   transition: transform 2s ease-out;
 }
 
-.spin {
+spin {
   animation: spin 2s ease-out;
 }
 
