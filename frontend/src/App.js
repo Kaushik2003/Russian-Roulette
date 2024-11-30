@@ -19,7 +19,7 @@ function App() {
     } else {
       alert('Please install MetaMask!');
     }
-  };
+  }; 
 
   // Enables game-related buttons after wallet connection
   const enableGameButtons = () => {
