@@ -8,6 +8,21 @@ align-items: flex-end;
 @tailwind components;
 @tailwind utilities;
 
+
+/* @import url("https://fonts.googleapis.com/css2?family=Kalam:wght@700&family=Pixelify+Sans:wght@400..700&display=swap"); */
+
+@font-face{
+  font-family: "minecraftpixel";
+  src: url("./components/minecraft_font.ttf");
+}
+
+@font-face{
+  font-family: "pixelify";
+  src: url("./components/PixelifySans-Regular.ttf");
+}
+
+
+
 body {
   font-family: 'Press Start 2P', cursive;
   background: #f0f2f5;
@@ -90,4 +105,3 @@ button:disabled {
 button + button {
   margin-left: 10px;
 }
-

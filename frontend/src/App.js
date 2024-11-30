@@ -106,23 +106,27 @@ function App() {
 
   return (
     <div id="app" className="min-h-screen flex flex-col">
-      {/* Header section */}
-      {/* <header className="bg-white shadow-lg p-4">
-        <div className="container mx-auto flex justify-between items-center">
-          <div className="text-xl">🎲 Web3 Roulette</div>
-          <button id="connectWallet" className="pixel-border bg-blue-500 text-white px-4 py-2 text-sm" onClick={handleConnectWallet}>
-            Connect Wallet
-          </button>
-        </div>
-      </header> */}
+     
         <header className="bg-white shadow-md py-2 px-4">
          
           <div className="header">
               {/* Logo or title */}
-            <div className="flex-1 text-2xl font-bold text-gray-800">🎲 Web3 Roulette</div>
+            {/* <div className="font-pixel flex-1 text-2xl font-bold text-gray-800">
+              🎲 Russian Roulette
+            </div> */}
+            <div className='flex justify-end'>
+              
+              <div>
+                <img width={65} height={65}  className="" src="/logo.png" alt='logo'/>
+              </div>
+
+              <div className="font-pixel flex-1 text-2xl font-bold text-gray-800">
+              &nbsp; Russian Roulette
+              </div>
+            </div>
                 {/* Wallet connect button */}
                 <div>
-                    <button id="connectWallet" className="pixel-border bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded text-sm transition" onClick={handleConnectWallet}>Connect Wallet</button>
+                    <button id="connectWallet" className=" font-pixel pixel-border bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded text-sm transition" onClick={handleConnectWallet}>Connect Wallet</button>
                 </div>
                 
            </div>
@@ -133,7 +137,7 @@ function App() {
       <main className="flex-1 container mx-auto p-4 flex flex-col md:flex-row gap-4">
         {/* Game area */}
         <div className="flex-1">
-          <div id="gameArea" className="bg-white p-6 rounded-lg pixel-border min-h-[400px] flex flex-col items-center justify-center">
+          <div id="gameArea" className="font-pixel bg-white p-6 rounded-lg pixel-border min-h-[400px] flex flex-col items-center justify-center">
             {/* Revolver visualization */}
             <div id="revolver" className="mb-8 relative w-64 h-64">
               <div className="w-64 h-64 border-8 border-gray-800 rounded-full flex items-center justify-center">
@@ -147,12 +151,12 @@ function App() {
               </div>
             </div>
             {/* Spin button */}
-            <button id="spinButton" className="game-button bg-red-600 text-white px-8 py-4 rounded pixel-border mb-4" onClick={handleSpinButton} disabled>
+            <button id="spinButton" className="font-pixel game-button bg-red-600 text-white px-8 py-4 rounded pixel-border mb-4" onClick={handleSpinButton} disabled>
               Spin & Fire
             </button>
             {/* Skip and Forfeit buttons */}
             <div className="flex gap-4">
-              <button id="skipButton" className="game-button bg-yellow-500 text-white px-4 py-2 rounded pixel-border" onClick={handleSkipButton} disabled>
+              <button id="skipButton" className="font-pixel game-button bg-yellow-500 text-white px-4 py-2 rounded pixel-border" onClick={handleSkipButton} disabled>
                 Skip Turn (-0.1 ETH)
               </button>
               <button id="forfeitButton" className="game-button bg-gray-500 text-white px-4 py-2 rounded pixel-border" onClick={handleForfeitButton} disabled>
@@ -163,7 +167,7 @@ function App() {
         </div>
 
         {/* Sidebar for game info */}
-        <div className="md:w-80">
+        <div className="font-pixel md:w-80">
           <div className="bg-white p-4 rounded-lg pixel-border mb-4">
             <h3 className="text-lg mb-4">Game Info</h3>
             <div id="gameStatus" className="mb-4">Status: Waiting for players</div>
@@ -180,7 +184,7 @@ function App() {
           </div>
 
           {/* Join/Create Game section */}
-          <div className="bg-white p-4 rounded-lg pixel-border">
+          <div className="font-pixel bg-white p-4 rounded-lg pixel-border">
             <h3 className="text-lg mb-4">Join/Create Game</h3>
             <input type="text" placeholder="Enter Lobby ID" className="w-full px-4 py-2 mb-4 border rounded" />
             <button id="joinGame" className="game-button bg-green-500 text-white px-4 py-2 rounded pixel-border w-full mb-4" onClick={handleCreateGame}>
@@ -194,13 +198,13 @@ function App() {
       </main>
 
       {/* Footer section */}
-      <footer className="bg-gray-800 text-white p-4 mt-8">
+      <footer className="font-pixel bg-gray-800 text-white p-4 mt-8">
         <div className="container mx-auto text-center text-sm">
           <p>⚠️ Play responsibly. This is a game of chance.</p>
           <div className="mt-2">
-            <a href="#" className="mx-2">Terms</a>
-            <a href="#" className="mx-2">Privacy</a>
-            <a href="#" className="mx-2">Support</a>
+            <a href="/" className="mx-2">Terms</a>
+            <a href="/" className="mx-2">Privacy</a>
+            <a href="/" className="mx-2">Support</a>
           </div>
         </div>
       </footer>
