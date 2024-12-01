@@ -271,11 +271,6 @@ function App() {
             </div>
           </div>
         </div>
-
-       
-
-        
-        
         <div className="flex-1">
          {/* Sidebar for game info */}
          <div className="font-pixel md:w-80">
@@ -295,12 +290,10 @@ function App() {
 </div>
 </div>
         </div>
-        </div>
-        
-          <div id="lobbyArea" className="bg-white p-6 rounded-lg pixel-border">
-            <h2 className="font-pixel text-xl text-gray-800">Lobby</h2>
+        <div id="lobbyArea" className="bg-white p-6 rounded-lg pixel-border">
+            <h2 className="font-pixel text-xl text-gray-800">Join/Create game</h2>
             <div className="font-pixel text-gray-800 mt-4">
-              <label htmlFor="lobbyId" className="block text-sm">Enter Lobby ID</label>
+              {/* <label htmlFor="lobbyId" className="block text-sm">Enter Lobby ID</label> */}
               <input type="text" id="lobbyId" className="w-full p-2 border border-gray-300 rounded" placeholder="Enter Lobby ID" />
             </div>
             <div className="mt-4 flex justify-center gap-4">
@@ -314,6 +307,9 @@ function App() {
 
             <div id="gameStatus" className="mt-4 font-pixel text-xl font-bold text-gray-800">Status: Waiting...</div>
           </div>
+        </div>
+        
+          
         </div>
       </main>
 
