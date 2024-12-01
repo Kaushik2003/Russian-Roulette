@@ -1,146 +1,256 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import io from 'socket.io-client';
 import './App.css';
 
+
+const API_URL = 'http://localhost:3001/api'; // Base URL for your backend
+
 function App() {
+  const [socket, setSocket] = useState(null);
   const [walletConnected, setWalletConnected] = useState(false);
-  const [gameActive, setGameActive] = useState(false); 
-  const [currentTurn, setCurrentTurn] = useState(false); 
+  const [gameActive, setGameActive] = useState(false);
+  const [currentTurn, setCurrentTurn] = useState(false);
+  const [gameId, setGameId] = useState(null);
+  const [playerName, setPlayerName] = useState('');
+  const [playerList, setPlayerList] = useState([]);
+  const [waitingForPlayer, setWaitingForPlayer] = useState(false);
+
+  // Socket connection on component mount
+  useEffect(() => {
+    const newSocket = io('http://localhost:3001');
+    setSocket(newSocket);
+
+    // Clean up socket on unmount
+    return () => newSocket.close();
+  }, []);
 
   const handleConnectWallet = async () => {
     if (typeof window.ethereum !== 'undefined') { 
       try {
         await window.ethereum.request({ method: 'eth_requestAccounts' });
-        setWalletConnected(true); 
+        setWalletConnected(true);
         document.getElementById('connectWallet').textContent = 'Connected';
-        enableGameButtons(); 
+        enableGameButtons();
       } catch (error) {
-        console.error('User denied account access'); 
+        console.error('User denied account access');
       }
     } else {
       alert('Please install MetaMask!');
     }
   }; 
 
-  // Enables game-related buttons after wallet connection
   const enableGameButtons = () => {
     document.getElementById('joinGame').disabled = false;
     document.getElementById('createGame').disabled = false;
   };
 
-  // Handles the spin button logic
-  const handleSpinButton = () => {
-    if (!gameActive || !currentTurn) return; // Prevent action if game isn't active or it's not the player's turn
+  // const handleCreateGame = async () => {
+  //   if (!walletConnected) {
+  //     alert('Please connect your wallet first!');
+  //     return;
+  //   }
 
-    const revolver = document.querySelector('.revolver-chamber'); // Select the revolver's chamber element
-    revolver.classList.add('spin'); // Add spinning animation
+  //   // Prompt for player name
+  //   const name = prompt('Enter your name:');
+  //   if (!name) return;
 
-    // Disable all buttons during the spin
-    document.getElementById('spinButton').disabled = true;
-    document.getElementById('skipButton').disabled = true;
-    document.getElementById('forfeitButton').disabled = true;
+  //   try {
+  //     const response = await axios.post(`${API_URL}/game/create`, { player: name });
+      
+  //     setGameId(response.data.gameId);
+  //     setPlayerName(name);
+  //     setGameActive(true);
+  //     setCurrentTurn(true);
 
-    // Simulate game outcome logic
-    setTimeout(() => {
-      revolver.classList.remove('spin'); // Remove spinning animation
-      const result = Math.random() > 0.8; // Randomly determine the outcome (20% chance of "Bang!")
+  //     document.getElementById('gameStatus').textContent = 'Status: Game Created';
+  //     document.getElementById('spinButton').disabled = false;
+  //     document.getElementById('skipButton').disabled = false;
+  //     document.getElementById('forfeitButton').disabled = false;
 
-      if (result) {
-        alert("BANG! You're out!"); // Notify the player of the outcome
-        setGameActive(false); // Deactivate the game
-      } else {
-        alert('Click! You survived!'); // Notify the player of survival
-        // Re-enable buttons for the next turn
-        document.getElementById('spinButton').disabled = false;
-        document.getElementById('skipButton').disabled = false;
-        document.getElementById('forfeitButton').disabled = false;
-      }
-    }, 2000); // 2-second delay to simulate the spin
-  };
+  //     // Update player list
+  //     setPlayerList([name]);
 
-  // Handles creating a new game
+  //     // Emit game creation event to socket
+  //     socket.emit('createGame', {
+  //       gameId: response.data.gameId,
+  //       hostPlayer: name
+  //     });
+
+  //     setWaitingForPlayer(true);
+  //   } catch (error) {
+  //     console.error('Error creating game:', error);
+  //     alert('Failed to create game');
+  //   }
+  // };
+
+
   const handleCreateGame = async () => {
-    if (!walletConnected) { // Prevent game creation if wallet is not connected
+    if (!walletConnected) {
+      alert('Please connect your wallet first!');
+      return;
+    }
+  
+    const name = prompt('Enter your name:');
+    if (!name) return;
+  
+    try {
+      const response = await axios.post(`${API_URL}/game/create`, { player: name });
+      
+      setGameId(response.data.gameId);
+      setPlayerName(name);
+      setGameActive(true);
+      setCurrentTurn(true);
+  
+      document.getElementById('gameStatus').textContent = 'Status: Game Created';
+      document.getElementById('spinButton').disabled = false;
+      document.getElementById('skipButton').disabled = false;
+      document.getElementById('forfeitButton').disabled = false;
+  
+      setPlayerList([name]);
+  
+      // Emit game creation event to socket
+      socket.emit('createGame', {
+        gameId: response.data.gameId,
+        hostPlayer: name
+      });
+  
+      setWaitingForPlayer(true);
+    } catch (error) {
+      console.error('Error creating game:', error);
+      if (error.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        console.log(error.response.data);
+        alert(`Failed to create game: ${error.response.data}`);
+      } else if (error.request) {
+        // The request was made but no response was received
+        console.log('No response received');
+        alert('No response received from the server');
+      } else {
+        // Something happened in setting up the request that triggered an Error
+        console.log('Error setting up the request', error.message);
+        alert('An error occurred while setting up the request');
+      }
+      alert('Failed to create game');
+    }
+  };
+  
+  const handleJoinGame = async () => {
+    if (!walletConnected) {
       alert('Please connect your wallet first!');
       return;
     }
 
+    const lobbyId = document.querySelector('input[placeholder="Enter Lobby ID"]').value;
+    const name = prompt('Enter your name:');
+    if (!lobbyId || !name) return;
+
     try {
-      setGameActive(true); // Activate the game
-      setCurrentTurn(true); // Set the current turn to the player
-      document.getElementById('gameStatus').textContent = 'Status: Game Created'; // Update game status
-      // Enable game-related buttons
+      const response = await axios.post(`${API_URL}/game/join`, { 
+        gameId: lobbyId, 
+        player: name 
+      });
+
+      setGameId(lobbyId);
+      setPlayerName(name);
+      setGameActive(true);
+      
+      // Fetch game details to get player list
+      const gameDetails = await axios.get(`${API_URL}/game/${lobbyId}`);
+      setPlayerList(gameDetails.data.game.players);
+
+      document.getElementById('gameStatus').textContent = 'Status: Game Joined';
       document.getElementById('spinButton').disabled = false;
       document.getElementById('skipButton').disabled = false;
       document.getElementById('forfeitButton').disabled = false;
 
-      // Update the player list
-      document.getElementById('playerList').innerHTML = `
-        <div class="flex items-center gap-2">
-          <div class="w-2 h-2 bg-green-500 rounded-full"></div>
-          You (Active)
-        </div>
-      `;
+      // Emit join game event to socket
+      socket.emit('joinGame', {
+        gameId: lobbyId,
+        playerName: name
+      });
     } catch (error) {
-      console.error('Error creating game:', error); // Log any error encountered
+      console.error('Error joining game:', error);
+      alert('Failed to join game');
     }
   };
 
-  // Handles skipping the turn
-  const handleSkipButton = () => {
-    if (!gameActive || !currentTurn) return; // Prevent action if the game is inactive or not the player's turn
-    alert('Turn skipped! -0.1 ETH'); // Notify the player about skipping the turn
-    setCurrentTurn(false); // Set turn to inactive
+  const handleSpinButton = async () => {
+    if (!gameActive || !currentTurn) return;
+
+    const revolver = document.querySelector('.revolver-chamber');
+    revolver.classList.add('spin');
+
+    document.getElementById('spinButton').disabled = true;
+    document.getElementById('skipButton').disabled = true;
+    document.getElementById('forfeitButton').disabled = true;
+
+    try {
+      const response = await axios.post(`${API_URL}/game/play`, { 
+        gameId, 
+        player: playerName 
+      });
+
+      setTimeout(() => {
+        revolver.classList.remove('spin');
+
+        if (response.data.result === 'lost') {
+          alert("BANG! You're out!");
+          setGameActive(false);
+        } else {
+          alert('Click! You survived!');
+          // Re-enable buttons for the next turn
+          document.getElementById('spinButton').disabled = false;
+          document.getElementById('skipButton').disabled = false;
+          document.getElementById('forfeitButton').disabled = false;
+        }
+      }, 2000);
+    } catch (error) {
+      console.error('Error playing turn:', error);
+      alert('Failed to play turn');
+    }
   };
 
-  // Handles forfeiting the game
+  const handleSkipButton = () => {
+    if (!gameActive || !currentTurn) return;
+    alert('Turn skipped! -0.1 ETH');
+    setCurrentTurn(false);
+  };
+
   const handleForfeitButton = () => {
-    if (!gameActive) return; // Prevent action if the game isn't active
+    if (!gameActive) return;
     if (window.confirm('Are you sure you want to forfeit? You will lose your stake.')) {
-      setGameActive(false); // Deactivate the game
-      setCurrentTurn(false); // Reset the turn
-      alert('Game forfeited!'); // Notify the player
+      setGameActive(false);
+      setCurrentTurn(false);
+      alert('Game forfeited!');
     }
   };
 
   return (
     <div id="app" className="min-h-screen flex flex-col">
-     
-        <header className="bg-white shadow-md py-2 px-4">
-         
-          <div className="header">
-              {/* Logo or title */}
-            {/* <div className="font-pixel flex-1 text-2xl font-bold text-gray-800">
-              🎲 Russian Roulette
-            </div> */}
-            <div className='flex justify-end'>
-              
-              <div>
-                <img width={65} height={65}  className="" src="/logo.png" alt='logo'/>
-              </div>
-
-              <div className="font-pixel flex-1 text-2xl font-bold text-gray-800">
-              &nbsp; Russian Roulette
-              </div>
+      <header className="bg-white shadow-md py-2 px-4">
+        <div className="header">
+          <div className='flex justify-end'>
+            <div>
+              <img width={65} height={65} src="/logo.png" alt='logo'/>
             </div>
-                {/* Wallet connect button */}
-                <div>
-                    <button id="connectWallet" className=" font-pixel pixel-border bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded text-sm transition" onClick={handleConnectWallet}>Connect Wallet</button>
-                </div>
-                
-           </div>
-        </header>
+            <div className="font-pixel flex-1 text-2xl font-bold text-gray-800">
+              &nbsp; Russian Roulette
+            </div>
+          </div>
+          <div>
+            <button id="connectWallet" className="font-pixel pixel-border bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded text-sm transition" onClick={handleConnectWallet}>Connect Wallet</button>
+          </div>
+        </div>
+      </header>
 
-
-      {/* Main content area */}
       <main className="flex-1 container mx-auto p-4 flex flex-col md:flex-row gap-4">
-        {/* Game area */}
         <div className="flex-1">
           <div id="gameArea" className="font-pixel bg-white p-6 rounded-lg pixel-border min-h-[400px] flex flex-col items-center justify-center">
-            {/* Revolver visualization */}
             <div id="revolver" className="mb-8 relative w-64 h-64">
               <div className="w-64 h-64 border-8 border-gray-800 rounded-full flex items-center justify-center">
                 <div className="revolver-chamber w-48 h-48 bg-gray-300 rounded-full relative">
-                  {/* Chamber slots */}
                   <div className="absolute w-8 h-8 bg-gray-600 rounded-full" style={{ top: '20px', left: '50%', transform: 'translateX(-50%)' }}></div>
                   <div className="absolute w-8 h-8 bg-gray-600 rounded-full" style={{ top: '50%', right: '20px', transform: 'translateY(-50%)' }}></div>
                   <div className="absolute w-8 h-8 bg-gray-600 rounded-full" style={{ bottom: '20px', left: '50%', transform: 'translateX(-50%)' }}></div>
@@ -148,11 +258,9 @@ function App() {
                 </div>
               </div>
             </div>
-            {/* Spin button */}
             <button id="spinButton" className="font-pixel game-button bg-red-600 text-white px-8 py-4 rounded pixel-border mb-4" onClick={handleSpinButton} disabled>
               Spin & Fire
             </button>
-            {/* Skip and Forfeit buttons */}
             <div className="flex gap-4">
               <button id="skipButton" className="font-pixel game-button bg-yellow-500 text-white px-4 py-2 rounded pixel-border" onClick={handleSkipButton} disabled>
                 Skip Turn (-0.1 ETH)
@@ -164,38 +272,51 @@ function App() {
           </div>
         </div>
 
-        {/* Sidebar for game info */}
-        <div className="font-pixel md:w-80">
-          <div className="bg-white p-4 rounded-lg pixel-border mb-4">
-            <h3 className="text-lg mb-4">Game Info</h3>
-            <div id="gameStatus" className="mb-4">Status: Waiting for players</div>
-            <div id="stake" className="mb-4">Stake: 0.5 ETH</div>
-            <div id="players" className="mb-4">
-              <div className="font-bold mb-2">Players:</div>
-              <div id="playerList" className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  Waiting...
-                </div>
-              </div>
-            </div>
-          </div>
+       
 
-          {/* Join/Create Game section */}
-          <div className="font-pixel bg-white p-4 rounded-lg pixel-border">
-            <h3 className="text-lg mb-4">Join/Create Game</h3>
-            <input type="text" placeholder="Enter Lobby ID" className="w-full px-4 py-2 mb-4 border rounded" />
-            <button id="joinGame" className="game-button bg-green-500 text-white px-4 py-2 rounded pixel-border w-full mb-4" onClick={handleCreateGame}>
-              Join Game
-            </button>
-            <button id="createGame" className="game-button bg-blue-500 text-white px-4 py-2 rounded pixel-border w-full" onClick={handleCreateGame}>
-              Create New Game
-            </button>
+        
+        
+        <div className="flex-1">
+         {/* Sidebar for game info */}
+         <div className="font-pixel md:w-80">
+        <div className="bg-white p-4 rounded-lg pixel-border mb-4">
+        <h3 className="text-lg mb-4">Game Info</h3>
+        <div id="gameStatus" className="mb-4">Status: Waiting for players</div>
+        <div id="stake" className="mb-4">Stake: 0.005 EDU</div>
+        <div id="players" className="mb-4">
+        <div className="font-bold mb-2">Players:</div>
+        <div id="playerList" className="space-y-2">
+        {playerList.map((player, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    {player}
+                  </div>
+                ))}
+</div>
+</div>
+        </div>
+        </div>
+        
+          <div id="lobbyArea" className="bg-white p-6 rounded-lg pixel-border">
+            <h2 className="font-pixel text-xl text-gray-800">Lobby</h2>
+            <div className="font-pixel text-gray-800 mt-4">
+              <label htmlFor="lobbyId" className="block text-sm">Enter Lobby ID</label>
+              <input type="text" id="lobbyId" className="w-full p-2 border border-gray-300 rounded" placeholder="Enter Lobby ID" />
+            </div>
+            <div className="mt-4 flex justify-center gap-4">
+              <button id="createGame" className="font-pixel bg-green-500 text-white px-6 py-2 rounded text-sm pixel-border" onClick={handleCreateGame}>
+                Create Game
+              </button>
+              <button id="joinGame" className="font-pixel bg-blue-500 text-white px-6 py-2 rounded text-sm pixel-border" onClick={handleJoinGame} disabled>
+                Join Game
+              </button>
+            </div>
+
+            <div id="gameStatus" className="mt-4 font-pixel text-xl font-bold text-gray-800">Status: Waiting...</div>
           </div>
         </div>
       </main>
 
-      {/* Footer section */}
       <footer className="font-pixel bg-gray-800 text-white p-4 mt-8">
         <div className="container mx-auto text-center text-sm">
           <p>⚠️ Play responsibly. This is a game of chance.</p>
@@ -210,4 +331,7 @@ function App() {
   );
 }
 
-export default App; // Export the App component as the default export
+export default App;
+
+
+   
