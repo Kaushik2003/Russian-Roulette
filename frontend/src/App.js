@@ -4,7 +4,7 @@ import io from 'socket.io-client';
 import './App.css';
 
 
-const API_URL = 'http://localhost:3001/api'; // Base URL for your backend
+const API_URL = 'http://localhost:3001/api';
 
 function App() {
   const [socket, setSocket] = useState(null);
