@@ -271,7 +271,7 @@ function App() {
             </div>
           </div>
         </div>
-        <div className="flex-1">
+
          {/* Sidebar for game info */}
          <div className="font-pixel md:w-80">
         <div className="bg-white p-4 rounded-lg pixel-border mb-4">
@@ -310,7 +310,7 @@ function App() {
         </div>
         
           
-        </div>
+   
       </main>
 
       <footer className="font-pixel bg-gray-800 text-white p-4 mt-8">
