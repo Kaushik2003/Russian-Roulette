@@ -2,18 +2,28 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import io from "socket.io-client";
 import "./App.css";
+import { useWallet } from "./WalletContext";
 
 const API_URL = "http://localhost:3001/api";
 
 function GamePage() {
   const [socket, setSocket] = useState(null);
-  const [walletConnected, setWalletConnected] = useState(false);
+  // const [walletConnected, setWalletConnected] = useState(false);
   const [gameActive, setGameActive] = useState(false);
   const [currentTurn, setCurrentTurn] = useState(false);
   const [gameId, setGameId] = useState(null);
   const [playerName, setPlayerName] = useState("");
   const [playerList, setPlayerList] = useState([]);
   const [waitingForPlayer, setWaitingForPlayer] = useState(false);
+  console.log("playerList", playerList);
+  console.log("PlayerName", playerName);
+  const {
+    walletAddress,
+    walletConnected,
+    connectWallet,
+    setWalletConnected,
+    handleConnectWallet,
+  } = useWallet();
 
   // Socket connection on component mount
   useEffect(() => {
@@ -23,26 +33,6 @@ function GamePage() {
     // Clean up socket on unmount
     return () => newSocket.close();
   }, []);
-
-  const handleConnectWallet = async () => {
-    if (typeof window.ethereum !== "undefined") {
-      try {
-        await window.ethereum.request({ method: "eth_requestAccounts" });
-        setWalletConnected(true);
-        document.getElementById("connectWallet").textContent = "Connected";
-        enableGameButtons();
-      } catch (error) {
-        console.error("User denied account access");
-      }
-    } else {
-      alert("Please install MetaMask!");
-    }
-  };
-
-  const enableGameButtons = () => {
-    document.getElementById("joinGame").disabled = false;
-    document.getElementById("createGame").disabled = false;
-  };
 
   const handleCreateGame = async () => {
     const token = localStorage.getItem("token");
@@ -117,12 +107,21 @@ function GamePage() {
     ).value;
     const name = prompt("Enter your name:");
     if (!lobbyId || !name) return;
+    const token = localStorage.getItem("token");
 
     try {
-      const response = await axios.post(`${API_URL}/game/join`, {
-        gameId: lobbyId,
-        player: name,
-      });
+      const response = await axios.post(
+        `${API_URL}/game/join`,
+        {
+          gameId: lobbyId,
+          player: name,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       console.log(response.data);
 
@@ -132,7 +131,8 @@ function GamePage() {
 
       // Fetch game details to get player list
       const gameDetails = await axios.get(`${API_URL}/game/${lobbyId}`);
-      setPlayerList(gameDetails.data.game.players);
+      console.log("Game details:", gameDetails.data);
+      setPlayerList(gameDetails.data.players.map((p) => p.username));
 
       document.getElementById("gameStatus").textContent = "Status: Game Joined";
       document.getElementById("spinButton").disabled = false;
@@ -340,8 +340,9 @@ function GamePage() {
             <div className="mt-4 flex justify-center gap-4">
               <button
                 id="createGame"
-                className="font-pixel bg-green-500 text-white px-6 py-2 rounded text-sm pixel-border"
+                className="font-pixel bg-green-500 text-white px-6 py-2 rounded text-sm pixel-border mb-4"
                 onClick={handleCreateGame}
+                disabled={!walletConnected}
               >
                 Create Game
               </button>
@@ -349,7 +350,7 @@ function GamePage() {
                 id="joinGame"
                 className="font-pixel bg-blue-500 text-white px-6 py-2 rounded text-sm pixel-border"
                 onClick={handleJoinGame}
-                disabled
+                disabled={!walletConnected}
               >
                 Join Game
               </button>
