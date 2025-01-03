@@ -107,6 +107,9 @@ function GamePage() {
     ).value;
     const name = prompt("Enter your name:");
     if (!lobbyId || !name) return;
+
+    console.log("Name:", name);
+
     const token = localStorage.getItem("token");
 
     try {
@@ -128,6 +131,8 @@ function GamePage() {
       setGameId(lobbyId);
       setPlayerName(name);
       setGameActive(true);
+
+      console.log("Game joined:", playerName);
 
       // Fetch game details to get player list
       const gameDetails = await axios.get(`${API_URL}/game/${lobbyId}`);
@@ -318,7 +323,7 @@ function GamePage() {
                 {playerList.map((player, index) => (
                   <div key={index} className="flex items-center gap-2">
                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    {player}
+                    <p className="text-black">{player}</p>
                   </div>
                 ))}
               </div>
@@ -329,13 +334,16 @@ function GamePage() {
               Join/Create game
             </h2>
             <div className="font-pixel text-gray-800 mt-4">
-              {/* <label htmlFor="lobbyId" className="block text-sm">Enter Lobby ID</label> */}
+              <label htmlFor="lobbyId" className="block text-sm">
+                Enter Lobby ID
+              </label>
               <input
                 type="text"
                 id="lobbyId"
                 className="w-full p-2 border border-gray-300 rounded"
                 placeholder="Enter Lobby ID"
               />
+              {gameId}
             </div>
             <div className="mt-4 flex justify-center gap-4">
               <button

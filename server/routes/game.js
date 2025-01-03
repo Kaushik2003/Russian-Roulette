@@ -26,20 +26,23 @@ router.post("/create", authMiddleware, async (req, res) => {
 router.post("/join", authMiddleware, async (req, res) => {
   try {
     const { gameId, player } = req.body;
+    console.log("Player: ", player);
     console.log("Game joined by person: ", req.body);
     const game = await Game.findOne({ gameId });
     if (!game) {
       return res.status(404).json({ error: "Game not found" });
     }
-    if (game.players.some((p) => p.name === player)) {
+    if (game.players.some((p) => p.username === player)) {
       return res.status(400).json({ error: "Player already in game" });
     }
     game.players.push({
       gameId: gameId,
-      name: player,
+      username: player,
     });
     await game.save();
     console.log("Game found: ", game);
+    console.log("Updated players array:", game.players);
+
     // const io = socket.g
     res.status(200).json({ message: "Game joined successfully", game });
   } catch (error) {
